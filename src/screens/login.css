@@ -1,0 +1,25 @@
+.login-field {
+    display: flex;
+    align-items: center;
+    background: #f1f1f1;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 10px;
+    width: 100%;
+  }
+  
+  .login-icon {
+    color: #666;
+    margin-right: 8px;
+  }
+  
+  .login-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    flex: 1;
+    color: #131313;
+    width: 100%; 
+    padding: 8px;
+  }
+  
