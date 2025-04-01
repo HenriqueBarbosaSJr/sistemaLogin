@@ -3,38 +3,39 @@ import { FaUser, FaLock } from "react-icons/fa";
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from "react-router-dom";
 import Cookies from 'js-cookie';
 
-import "./Login.css";
+import './login.css';
 import { api } from "../api/Api";
 
 const Login =  () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('authToken'));
 
-
-  async function consultarapi(){
-    let acesso = {
-      email:'joao@email.com',
-      password: '123mudar'
-    };
-    const response = await api.get('user');
-    console.log(response);
-  }
-
-
-  const handleLogin = async  () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       setError("Preencha todos os campos.");
       return;
     }
 
-    //const [token, setToken] = useState<string | null>(Cookies.get('authToken') || null);
 
-
-    
-    setError("");
-    setIsAuthenticated(true);
+    try {
+      let acesso = {
+        email:'joao@email.com',
+        password: '123mudar'
+      };
+  
+      const response = await api.post('userauth', acesso);
+      console.log(response.data);
+      const authToken = response.data.token;
+      
+      if (authToken) {
+        Cookies.set('authToken', authToken, { expires: 1 });
+        setIsAuthenticated(true);
+      }
+    } catch (error) {
+      setError("Falha no login. Verifique suas credenciais.");
+    }
   };
 
   if (isAuthenticated) {
@@ -68,16 +69,24 @@ const Login =  () => {
             className="login-input"
           />
         </div>
-        <button onClick={consultarapi} className="login-button">Entrar</button>
+        <button onClick={handleLogin} className="login-button">Entrar</button>
       </div>
     </div>
   );
 };
 
 const Menu = () => {
+  const handleLogout = () => {
+    Cookies.remove('authToken');
+    window.location.href = "/";
+  };
+
   return (
     <div className="menu-container">
-      <h2>Menu</h2>
+      <div className="menu-header">
+        <h2>Menu</h2>
+        <button onClick={handleLogout} className="logout-button">Logout</button>
+      </div>
       <nav>
         <ul>
           <li><Link to="/cadastro">Cadastro</Link></li>
