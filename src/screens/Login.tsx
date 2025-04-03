@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { FaUser, FaLock } from "react-icons/fa";
-import { BrowserRouter as Router, Route, Routes, Link, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Link, Navigate, useNavigate } from "react-router-dom";
 import Cookies from 'js-cookie';
 
 import './login.css';
 import { api } from "../api/Api";
 
-const Login =  () => {
+const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(!!Cookies.get('authToken'));
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -18,29 +18,21 @@ const Login =  () => {
       return;
     }
 
-
     try {
-      let acesso = {
-        email:'joao@email.com',
-        password: '123mudar'
-      };
-  
+      const acesso = { email, password };
       const response = await api.post('userauth', acesso);
-      console.log(response.data);
       const authToken = response.data.token;
-      
+
       if (authToken) {
         Cookies.set('authToken', authToken, { expires: 1 });
-        setIsAuthenticated(true);
+        navigate("/menu");
+      }else {
+        setError("Usuário ou senha inválidos.");
       }
     } catch (error) {
       setError("Falha no login. Verifique suas credenciais.");
     }
   };
-
-  if (isAuthenticated) {
-    return <Navigate to="/menu" />;
-  }
 
   return (
     <div className="login-container">
@@ -74,6 +66,14 @@ const Login =  () => {
     </div>
   );
 };
+
+
+const ProtectedRoute = ({ element }: { element: React.ReactNode }) => {
+  const token = Cookies.get('authToken');
+  return token ? <>{element}</> : <Navigate to="/" />;
+};
+
+
 
 const Menu = () => {
   const handleLogout = () => {
@@ -109,11 +109,11 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/menu" element={<Menu />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/consulta" element={<Consulta />} />
-        <Route path="/alteracao" element={<Alteracao />} />
-        <Route path="/exclusao" element={<Exclusao />} />
+        <Route path="/menu" element={<ProtectedRoute element={<Menu />} />} />
+        <Route path="/cadastro" element={<ProtectedRoute element={<Cadastro />} />} />
+        <Route path="/consulta" element={<ProtectedRoute element={<Consulta />} />} />
+        <Route path="/alteracao" element={<ProtectedRoute element={<Alteracao />} />} />
+        <Route path="/exclusao" element={<ProtectedRoute element={<Exclusao />} />} />
       </Routes>
     </Router>
   );
